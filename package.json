@@ -6,12 +6,14 @@
   "scripts": {
     "lint": "npx eslint .",
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "deploy": "npm run build && scp -r ./dist/* cstrassergh@somethingblog.justlearning.net:/home/cstrassergh/frontend"
   },
   "author": "Colin Strasser",
   "license": "ISC",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2"
   },
   "devDependencies": {
     "eslint": "^8.57.1",
