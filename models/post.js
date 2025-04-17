@@ -12,21 +12,26 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  date: {
+    type: String,
+    required: true,
+  },
   description: {
     type: String,
     required: true,
     minlength: 2,
   },
-  url: {
-    type: String,
-    required: true,
-    validate: {
-      validator(value) {
-        return validator.isURL(value);
+  url: [
+    {
+      type: String,
+      validate: {
+        validator(value) {
+          return validator.isURL(value);
+        },
+        message: "You must enter a valid URL",
       },
-      message: "You must enter a valid URL",
     },
-  },
+  ],
 });
 
 module.exports = mongoose.model("post", postSchema);
