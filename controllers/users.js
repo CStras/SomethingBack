@@ -2,6 +2,7 @@ const User = require("../models/users");
 const BadRequestError = require("../constructors/bad-request-err");
 const ConflictError = require("../constructors/conflict-err");
 const NotFoundError = require("../constructors/not-found-err");
+const { JWT_SECRET } = require("../utils/config");
 
 const getUsers = (req, res) => {
   User.find({})
@@ -15,43 +16,28 @@ const getUsers = (req, res) => {
     });
 };
 
-/* const createUser = (req, res, next) => {
-  const { name, avatar, email, password } = req.body;
+const login = (req, res, next) => {
+  const { email, password } = req.body;
 
   if (!email || !password) {
-    return next(new BadRequestError("Email is already in use."));
+    return next(new BadRequestError("Email and password are required"));
   }
 
-  return User.findOne({ email })
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (user) {
-        throw new ConflictError("Email is already in use.");
-      }
-      return bcrypt.hash(password, 10).then((hash) => {
-        User.create({ name, avatar, email, password: hash }).then((data) => {
-          res
-            .status(REQUEST_CREATED)
-            .setHeader("Content-Type", "application/json")
-            .send({
-              name: data.name,
-              email: data.email,
-              avatar: data.avatar,
-            });
-        });
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
       });
+
+      return res.send({ token });
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
-        return next(new BadRequestError("Invalid data"));
-      }
-      if (err.message === "Email already in use") {
-        return next(
-          new ConflictError("An account exists already with this email")
-        );
+      if (err.message.includes("Incorrect email or password")) {
+        return next(new UnauthorizedError("Incorrect email or password"));
       }
       return next(err);
     });
-}; */
+};
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -90,4 +76,4 @@ const getUserById = (req, res, next) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUserById };
+module.exports = { getUsers, createUser, getUserById, login };
