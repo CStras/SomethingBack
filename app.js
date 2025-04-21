@@ -12,6 +12,9 @@ mongoose
   .then(() => console.log("Connected to database."))
   .catch(console.error);
 app.use(express.json());
+/* Better approach: app․post('/api/data', express.json(), handler);
+Apply it only where it’s actually needed.
+*/
 app.use(cors());
 
 app.use(limiter);
