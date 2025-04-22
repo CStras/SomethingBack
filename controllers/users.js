@@ -1,20 +1,12 @@
+const jwt = require("jsonwebtoken");
 const User = require("../models/users");
+const bcrypt = require("bcrypt");
 const BadRequestError = require("../constructors/bad-request-err");
 const ConflictError = require("../constructors/conflict-err");
 const NotFoundError = require("../constructors/not-found-err");
+const UnauthorizedError = require("../constructors/unauth-err");
+const { REQUEST_CREATED } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
-
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => {
-      res.send(users);
-    })
-    .catch((err) => {
-      return res.status(500).send({
-        message: err.message || "An error occurred while fetching users.",
-      });
-    });
-};
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
@@ -39,11 +31,30 @@ const login = (req, res, next) => {
     });
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
-  User.create({ name, avatar, email, password })
+
+  if (!email || !password) {
+    return next(new BadRequestError("Email is already in use."));
+  }
+
+  return User.findOne({ email })
     .then((user) => {
-      res.status(201).send(user);
+      if (user) {
+        throw new ConflictError("Email is already in use.");
+      }
+      return bcrypt.hash(password, 10).then((hash) => {
+        User.create({ name, avatar, email, password: hash }).then((data) => {
+          res
+            .status(REQUEST_CREATED)
+            .setHeader("Content-Type", "application/json")
+            .send({
+              name: data.name,
+              email: data.email,
+              avatar: data.avatar,
+            });
+        });
+      });
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -76,4 +87,4 @@ const getUserById = (req, res, next) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUserById, login };
+module.exports = { createUser, getUserById, login };
