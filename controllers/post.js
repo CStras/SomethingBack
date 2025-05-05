@@ -12,7 +12,6 @@ const getPosts = (req, res, next) => {
 
 const createPost = (req, res, next) => {
   const { title, author, date, description, url } = req.body;
-  console.log(req.body);
   Post.create({ title, author, date, description, url })
     .then((item) => {
       res.status(REQUEST_CREATED).send(item);
@@ -25,4 +24,23 @@ const createPost = (req, res, next) => {
     });
 };
 
-module.exports = { getPosts, createPost };
+const deletePost = (req, res, next) => {
+  const { itemId } = req.params;
+
+  Post.findById(itemId)
+    .orFail()
+    .then((item) => {
+      return item.deleteOne().then(() => res.send({ message: "Deleted" }));
+    })
+    .catch((err) => {
+      if (err.name === "DocumentNotFoundError") {
+        return next(new NotFoundError("Item not found"));
+      }
+      if (err.name === "CastError") {
+        return next(new BadRequestError("Invalid item ID"));
+      }
+      return next(err);
+    });
+};
+
+module.exports = { getPosts, createPost, deletePost };

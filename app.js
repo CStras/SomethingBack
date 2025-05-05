@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const errorHandler = require("./middleware/error-handler");
 const { limiter } = require("./middleware/limiter");
 const { errors } = require("celebrate");
@@ -18,6 +19,9 @@ app.use(express.json());
 /* Better approach: app․post('/api/data', express.json(), handler);
 Apply it only where it’s actually needed.
 */
+
+//app.use(cookieParser());
+
 app.use(cors());
 
 app.use(limiter);
